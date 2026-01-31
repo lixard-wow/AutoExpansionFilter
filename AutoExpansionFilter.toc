@@ -1,0 +1,8 @@
+## Interface: 120001, 120000
+## Title: Auto Expansion Filter
+## Version: 1.0.0
+## Author: Lixard
+## Notes: Automatically sets "Current Expansion Only" filter when opening the Auction House
+## SavedVariables: AutoExpansionFilterDB
+
+AutoExpansionFilter.lua
