@@ -147,7 +147,7 @@ SLASH_AUTOEXPANSIONFILTER3 = "/expfilter"
 
 ---@param msg string
 SlashCmdList["AUTOEXPANSIONFILTER"] = function(msg)
-    msg = (msg or ""):lower():trim()
+    msg = strtrim(msg or ""):lower()
 
     if msg == "config" or msg == "" then
         if AutoExpansionFilterFrame then
