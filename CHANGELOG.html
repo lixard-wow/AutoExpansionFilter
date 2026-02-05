@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Expansion Filter - Changelog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .version {
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+        }
+
+        .version-header {
+            display: flex;
+            align-items: baseline;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .version-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .version-date {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .changes {
+            margin-top: 15px;
+        }
+
+        .change-type {
+            font-weight: bold;
+            color: #444;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .change-type.added {
+            color: #10b981;
+        }
+
+        .change-type.changed {
+            color: #3b82f6;
+        }
+
+        .change-type.removed {
+            color: #ef4444;
+        }
+
+        .change-type.fixed {
+            color: #f59e0b;
+        }
+
+        .change-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .change-list li {
+            padding: 6px 0 6px 25px;
+            position: relative;
+            color: #555;
+        }
+
+        .change-list li:before {
+            content: "•";
+            position: absolute;
+            left: 10px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge.latest {
+            background: #10b981;
+            color: white;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Auto Expansion Filter</h1>
+            <p>Version History & Changelog</p>
+        </header>
+
+        <div class="content">
+            <div class="version">
+                <div class="version-header">
+                    <span class="version-number">v1.0.2</span>
+                    <span class="version-date">2026-02-04</span>
+                    <span class="badge latest">LATEST</span>
+                </div>
+
+                <div class="changes">
+                    <div class="change-type added">Added</div>
+                    <ul class="change-list">
+                        <li>Comprehensive LuaLS type annotations for better IDE support</li>
+                        <li>ESC key support to close configuration window</li>
+                        <li>Detailed inline documentation and code comments</li>
+                        <li>Error logging for debugging filter application issues</li>
+                        <li>README.md with installation and usage instructions</li>
+                        <li>CHANGELOG.md for tracking version history</li>
+                        <li>Enhanced VSCode Lua diagnostics configuration</li>
+                    </ul>
+
+                    <div class="change-type changed">Changed</div>
+                    <ul class="change-list">
+                        <li>Improved error handling with detailed error messages</li>
+                        <li>Better frame level handling (reduced from +10 to +1)</li>
+                        <li>Cleaner checkbox text access using .Text property</li>
+                        <li>More descriptive code comments explaining logic</li>
+                    </ul>
+
+                    <div class="change-type removed">Removed</div>
+                    <ul class="change-list">
+                        <li>Redundant global variable assignments</li>
+                        <li>Unnecessary frame name string concatenation</li>
+                    </ul>
+
+                    <div class="change-type fixed">Fixed</div>
+                    <ul class="change-list">
+                        <li>Silent error swallowing in pcall - now logs errors to chat</li>
+                        <li>Improved code organization and maintainability</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="version">
+                <div class="version-header">
+                    <span class="version-number">v1.0.1</span>
+                    <span class="version-date">Previous Release</span>
+                </div>
+
+                <div class="changes">
+                    <div class="change-type added">Added</div>
+                    <ul class="change-list">
+                        <li>Initial release with auto-filter functionality</li>
+                        <li>Configuration UI with checkbox</li>
+                        <li>Multiple slash commands (/aef, /autofilter, /expfilter)</li>
+                        <li>SavedVariables for persistent settings</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="version">
+                <div class="version-header">
+                    <span class="version-number">v1.0.0</span>
+                    <span class="version-date">Initial Release</span>
+                </div>
+
+                <div class="changes">
+                    <div class="change-type added">Added</div>
+                    <ul class="change-list">
+                        <li>Basic auto-expansion filter functionality</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ by Lixard | <a href="https://keepachangelog.com/">Keep a Changelog</a> Format</p>
+        </footer>
+    </div>
+</body>
+</html>
