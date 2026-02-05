@@ -1,0 +1,9 @@
+## Interface: 120001, 120000
+## Title: Auto Expansion Filter
+## Version: 1.0.2
+## Author: Lixard
+
+## SavedVariables: AutoExpansionFilterDB
+
+AutoExpansionFilter.lua
+
