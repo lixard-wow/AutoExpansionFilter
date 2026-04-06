@@ -1,0 +1,7 @@
+package-as: AutoExpansionFilter
+curse-project-id: 1450270
+ignore:
+  - .github
+  - .gitignore
+  - .pkgmeta
+  - README.md
