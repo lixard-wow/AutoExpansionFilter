@@ -13,21 +13,32 @@ local configCreated = false
 local RETRY_DELAYS = { 0, 0.2, 0.5, 1.0 }
 
 -- Both the Auction House's FilterButton and the Crafting Orders "Browse
--- Orders" page's FilterDropdown inherit WowStyle1FilterDropdownTemplate and
--- share the same Enum.AuctionHouseFilter.CurrentExpansionOnly key. The
--- visible checkbox is driven by the widget's own selection state
--- (GetFilters/ToggleFilter), not by writing to a "filters" table directly.
--- ToggleFilter flips rather than sets, so only call it when current state
--- disagrees with what we want -- this also keeps repeated retries idempotent.
+-- Orders" page's FilterDropdown share the same Enum.AuctionHouseFilter.
+-- CurrentExpansionOnly key, but they're wired differently under the hood:
+--   - AH's FilterButton exposes GetFilters/ToggleFilter; the visible
+--     checkbox is driven by that selection state, not a raw table.
+--   - Crafting Orders' FilterDropdown has no such methods -- Blizzard's own
+--     checkbox handler there just flips filterDropdown.filters[key]
+--     directly (confirmed against Blizzard_ProfessionsCustomerOrdersBrowse-
+--     Orders.lua), and the menu re-reads that table fresh each time it's
+--     opened. Its .filters table also doesn't exist until that page's own
+--     Init() has run, so this may need to wait for a retry to catch it.
 local function ToggleCurrentExpansionFilter(filterDropdown)
-    if not filterDropdown or not filterDropdown.GetFilters or not filterDropdown.ToggleFilter then return end
+    if not filterDropdown then return end
 
     local filterKey = Enum.AuctionHouseFilter.CurrentExpansionOnly
-    local current = filterDropdown:GetFilters()
-    local isCurrentlyOn = current and current[filterKey] == true
 
-    if isCurrentlyOn ~= AEF.db.enabled then
-        filterDropdown:ToggleFilter(filterKey)
+    if filterDropdown.GetFilters and filterDropdown.ToggleFilter then
+        local current = filterDropdown:GetFilters()
+        local isCurrentlyOn = current and current[filterKey] == true
+        if isCurrentlyOn ~= AEF.db.enabled then
+            filterDropdown:ToggleFilter(filterKey)
+        end
+    elseif type(filterDropdown.filters) == "table" then
+        filterDropdown.filters[filterKey] = AEF.db.enabled
+        if filterDropdown.ValidateResetState then
+            filterDropdown:ValidateResetState()
+        end
     end
 end
 
