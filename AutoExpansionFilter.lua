@@ -8,23 +8,33 @@ local COLOR_PREFIX = "|cFF00FF00AutoExpansionFilter:|r "
 local AEF = {}
 local configCreated = false
 
--- Blizzard's own filter-button init can run after our write (e.g. once the
--- search bar finishes populating from a real query result) and overwrite it,
--- so we reapply across a spread of delays instead of trusting a single pass.
+-- Retry across a spread of delays in case the filter button isn't fully
+-- initialized yet right as the search bar shows.
 local RETRY_DELAYS = { 0, 0.2, 0.5, 1.0 }
 
 local function ApplyFilterToUI()
     local sb = AuctionHouseFrame and AuctionHouseFrame.SearchBar
-    if not sb or not sb.FilterButton then return end
+    local fb = sb and sb.FilterButton
+    if not fb or not fb.GetFilters or not fb.ToggleFilter then return end
 
-    sb.FilterButton.filters = sb.FilterButton.filters or {}
-    sb.FilterButton.filters[Enum.AuctionHouseFilter.CurrentExpansionOnly] = AEF.db.enabled
+    -- FilterButton is Blizzard's newer Menu-based widget: the visible
+    -- checkbox is driven by its own selection state (GetFilters/ToggleFilter),
+    -- not by writing to a "filters" table directly. ToggleFilter flips
+    -- rather than sets, so only call it when current state disagrees with
+    -- what we want -- this also keeps repeated retries idempotent.
+    local filterKey = Enum.AuctionHouseFilter.CurrentExpansionOnly
+    local current = fb:GetFilters()
+    local isCurrentlyOn = current and current[filterKey] == true
+
+    if isCurrentlyOn ~= AEF.db.enabled then
+        fb:ToggleFilter(filterKey)
+    end
 
     if sb.UpdateClearFiltersButton then
         sb:UpdateClearFiltersButton()
     end
-    if sb.FilterButton.UpdateVisualState then
-        sb.FilterButton:UpdateVisualState()
+    if fb.UpdateVisualState then
+        fb:UpdateVisualState()
     end
 end
 

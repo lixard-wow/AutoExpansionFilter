@@ -1,6 +1,6 @@
 ## Interface: 120100, 120007, 120001, 120000
 ## Title: Auto Expansion Filter
-## Version: 1.0.4
+## Version: 1.0.5
 ## Author: Lixard
 
 ## SavedVariables: AutoExpansionFilterDB
