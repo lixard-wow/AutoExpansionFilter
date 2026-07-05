@@ -108,6 +108,70 @@ local function HookAH()
     end
 end
 
+local function DumpDropdownDebug(label, dropdown)
+    if not dropdown then
+        print(COLOR_PREFIX .. label .. ": nil")
+        return
+    end
+    print(COLOR_PREFIX .. label .. ": " .. tostring(dropdown))
+    print("  GetFilters=" .. tostring(dropdown.GetFilters) .. "  ToggleFilter=" .. tostring(dropdown.ToggleFilter))
+
+    local methods = {}
+    for k, v in pairs(dropdown) do
+        if type(v) == "function" then
+            table.insert(methods, k)
+        end
+    end
+    table.sort(methods)
+    print("  methods: " .. table.concat(methods, ", "))
+
+    print("  raw fields:")
+    for k, v in pairs(dropdown) do
+        if type(v) ~= "function" then
+            print(string.format("    %s (%s) = %s", tostring(k), type(v), tostring(v)))
+        end
+    end
+
+    if type(dropdown.filters) == "table" then
+        print("  .filters contents:")
+        for k, v in pairs(dropdown.filters) do
+            print(string.format("    [%s] = %s", tostring(k), tostring(v)))
+        end
+    end
+end
+
+local function RunOrdersDebug()
+    print(COLOR_PREFIX .. "Crafting Orders debug:")
+
+    local f = ProfessionsCustomerOrdersFrame
+    print("  ProfessionsCustomerOrdersFrame: " .. tostring(f))
+    if not f then return end
+
+    local p = f.BrowseOrders
+    print("  .BrowseOrders: " .. tostring(p))
+    if not p then return end
+
+    local sb = p.SearchBar
+    print("  .SearchBar: " .. tostring(sb) .. "  hooked=" .. tostring(sb and sb._aefHooked))
+    if not sb then return end
+
+    DumpDropdownDebug("  .FilterDropdown", sb.FilterDropdown)
+end
+
+local function RunAHDebug()
+    print(COLOR_PREFIX .. "Auction House debug:")
+
+    local ah = AuctionHouseFrame
+    print("  AuctionHouseFrame: " .. tostring(ah))
+    if not ah then return end
+
+    local sb = ah.SearchBar
+    print("  .SearchBar: " .. tostring(sb) .. "  hooked=" .. tostring(sb and sb._aefHooked))
+    if not sb then return end
+
+    DumpDropdownDebug("  .FilterButton", sb.FilterButton)
+end
+
 local function HookOrders()
     local ordersFrame = ProfessionsCustomerOrdersFrame
     if not ordersFrame then return end
@@ -222,11 +286,17 @@ SlashCmdList["AUTOEXPANSIONFILTER"] = function(msg)
         SetFilterEnabled(true, true)
     elseif msg == "off" or msg == "disable" then
         SetFilterEnabled(false, true)
+    elseif msg == "debug" or msg == "debugorders" then
+        RunOrdersDebug()
+    elseif msg == "debugah" then
+        RunAHDebug()
     elseif msg == "help" then
         print(COLOR_PREFIX .. "Commands:")
         print("  /aef - Open config")
         print("  /aef on/enable - Enable filter")
         print("  /aef off/disable - Disable filter")
+        print("  /aef debug - Dump Crafting Orders filter dropdown state")
+        print("  /aef debugah - Dump Auction House filter dropdown state")
     else
         print(COLOR_PREFIX .. "Unknown command. Type /aef help for commands")
     end
