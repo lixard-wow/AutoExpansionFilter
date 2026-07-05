@@ -12,23 +12,47 @@ local configCreated = false
 -- initialized yet right as the search bar shows.
 local RETRY_DELAYS = { 0, 0.2, 0.5, 1.0 }
 
-local function ApplyFilterToUI()
-    local sb = AuctionHouseFrame and AuctionHouseFrame.SearchBar
-    local fb = sb and sb.FilterButton
-    if not fb or not fb.GetFilters or not fb.ToggleFilter then return end
+-- Both the Auction House's FilterButton and the Crafting Orders "Browse
+-- Orders" page's FilterDropdown inherit WowStyle1FilterDropdownTemplate and
+-- share the same Enum.AuctionHouseFilter.CurrentExpansionOnly key. The
+-- visible checkbox is driven by the widget's own selection state
+-- (GetFilters/ToggleFilter), not by writing to a "filters" table directly.
+-- ToggleFilter flips rather than sets, so only call it when current state
+-- disagrees with what we want -- this also keeps repeated retries idempotent.
+local function ToggleCurrentExpansionFilter(filterDropdown)
+    if not filterDropdown or not filterDropdown.GetFilters or not filterDropdown.ToggleFilter then return end
 
-    -- FilterButton is Blizzard's newer Menu-based widget: the visible
-    -- checkbox is driven by its own selection state (GetFilters/ToggleFilter),
-    -- not by writing to a "filters" table directly. ToggleFilter flips
-    -- rather than sets, so only call it when current state disagrees with
-    -- what we want -- this also keeps repeated retries idempotent.
     local filterKey = Enum.AuctionHouseFilter.CurrentExpansionOnly
-    local current = fb:GetFilters()
+    local current = filterDropdown:GetFilters()
     local isCurrentlyOn = current and current[filterKey] == true
 
     if isCurrentlyOn ~= AEF.db.enabled then
-        fb:ToggleFilter(filterKey)
+        filterDropdown:ToggleFilter(filterKey)
     end
+end
+
+local function ApplyFilterToUI()
+    local sb = AuctionHouseFrame and AuctionHouseFrame.SearchBar
+    local fb = sb and sb.FilterButton
+    if not fb then return end
+
+    ToggleCurrentExpansionFilter(fb)
+
+    if sb.UpdateClearFiltersButton then
+        sb:UpdateClearFiltersButton()
+    end
+    if fb.UpdateVisualState then
+        fb:UpdateVisualState()
+    end
+end
+
+local function ApplyOrdersFilterToUI()
+    local page = ProfessionsCustomerOrdersFrame and ProfessionsCustomerOrdersFrame.BrowseOrders
+    local sb = page and page.SearchBar
+    local fb = sb and sb.FilterDropdown
+    if not fb then return end
+
+    ToggleCurrentExpansionFilter(fb)
 
     if sb.UpdateClearFiltersButton then
         sb:UpdateClearFiltersButton()
@@ -51,7 +75,12 @@ local function SetFilterEnabled(enabled, showMessage)
         C_Timer.After(delay, function()
             local success, err = pcall(ApplyFilterToUI)
             if not success and err then
-                print(COLOR_PREFIX .. "Error applying filter: " .. tostring(err))
+                print(COLOR_PREFIX .. "Error applying AH filter: " .. tostring(err))
+            end
+
+            local ordersSuccess, ordersErr = pcall(ApplyOrdersFilterToUI)
+            if not ordersSuccess and ordersErr then
+                print(COLOR_PREFIX .. "Error applying Crafting Orders filter: " .. tostring(ordersErr))
             end
         end)
     end
@@ -75,6 +104,25 @@ local function HookAH()
     end)
 
     if ahFrame:IsShown() then
+        SetFilterEnabled(AEF.db.enabled, false)
+    end
+end
+
+local function HookOrders()
+    local ordersFrame = ProfessionsCustomerOrdersFrame
+    if not ordersFrame then return end
+
+    local browsePage = ordersFrame.BrowseOrders
+    local searchBar = browsePage and browsePage.SearchBar
+    if not searchBar or searchBar._aefHooked then return end
+
+    searchBar._aefHooked = true
+
+    searchBar:HookScript("OnShow", function()
+        SetFilterEnabled(AEF.db.enabled, false)
+    end)
+
+    if browsePage:IsShown() then
         SetFilterEnabled(AEF.db.enabled, false)
     end
 end
@@ -141,11 +189,13 @@ eventFrame:SetScript("OnEvent", function(_, event, addonName)
 
         AutoExpansionFilterDB = AEF.db
 
-        eventFrame:UnregisterEvent("ADDON_LOADED")
+    elseif event == "ADDON_LOADED" and addonName == "Blizzard_ProfessionsCustomerOrders" then
+        HookOrders()
 
     elseif event == "PLAYER_LOGIN" then
         CreateConfig()
         HookAH()
+        HookOrders()
         eventFrame:UnregisterEvent("PLAYER_LOGIN")
 
     elseif event == "AUCTION_HOUSE_SHOW" then
