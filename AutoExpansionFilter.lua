@@ -8,6 +8,26 @@ local COLOR_PREFIX = "|cFF00FF00AutoExpansionFilter:|r "
 local AEF = {}
 local configCreated = false
 
+-- Blizzard's own filter-button init can run after our write (e.g. once the
+-- search bar finishes populating from a real query result) and overwrite it,
+-- so we reapply across a spread of delays instead of trusting a single pass.
+local RETRY_DELAYS = { 0, 0.2, 0.5, 1.0 }
+
+local function ApplyFilterToUI()
+    local sb = AuctionHouseFrame and AuctionHouseFrame.SearchBar
+    if not sb or not sb.FilterButton then return end
+
+    sb.FilterButton.filters = sb.FilterButton.filters or {}
+    sb.FilterButton.filters[Enum.AuctionHouseFilter.CurrentExpansionOnly] = AEF.db.enabled
+
+    if sb.UpdateClearFiltersButton then
+        sb:UpdateClearFiltersButton()
+    end
+    if sb.FilterButton.UpdateVisualState then
+        sb.FilterButton:UpdateVisualState()
+    end
+end
+
 ---@param enabled boolean
 ---@param showMessage boolean
 local function SetFilterEnabled(enabled, showMessage)
@@ -17,31 +37,14 @@ local function SetFilterEnabled(enabled, showMessage)
         AutoExpansionFilterFrame.EnableCheckbox:SetChecked(enabled)
     end
 
-    local success, err = pcall(function()
-        local ahFrame = AuctionHouseFrame
-        if not ahFrame or not ahFrame.SearchBar then return end
-
-        local searchBar = ahFrame.SearchBar
-        if not searchBar.FilterButton then return end
-
-        C_Timer.After(0, function()
-            local sb = AuctionHouseFrame and AuctionHouseFrame.SearchBar
-            if not sb or not sb.FilterButton then return end
-
-            sb.FilterButton.filters = sb.FilterButton.filters or {}
-            sb.FilterButton.filters[Enum.AuctionHouseFilter.CurrentExpansionOnly] = AEF.db.enabled
-
-            sb:UpdateClearFiltersButton()
-            if sb.FilterButton.UpdateVisualState then
-                sb.FilterButton:UpdateVisualState()
+    for _, delay in ipairs(RETRY_DELAYS) do
+        C_Timer.After(delay, function()
+            local success, err = pcall(ApplyFilterToUI)
+            if not success and err then
+                print(COLOR_PREFIX .. "Error applying filter: " .. tostring(err))
             end
         end)
-    end)
-
-    if not success and err then
-        print(COLOR_PREFIX .. "Error applying filter: " .. tostring(err))
     end
-
 
     if showMessage then
         print(COLOR_PREFIX .. (enabled and "Enabled" or "Disabled"))
