@@ -1,6 +1,7 @@
 ## Interface: 120100, 120007, 120001, 120000
 ## Title: Auto Expansion Filter
 ## Version: 1.2.2
+## X-Curse-Project-ID: 1450270
 ## Author: Lixard
 
 ## SavedVariables: AutoExpansionFilterDB

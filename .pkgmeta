@@ -1,8 +1,7 @@
 package-as: AutoExpansionFilter
-curse-project-id: 1450270
-changelog: CHANGELOG.md
-changelog-title: AutoExpansionFilter
-changelog-type: markdown
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
 ignore:
   - .github
   - .gitignore
